@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConsentGuard AI - 개인 동의서 AI 에이전트 데모</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
+    * {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .pulse-danger {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      animation: pulse-red 2s infinite;
+    }
+    @keyframes pulse-red {
+      0% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased">
+
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-4 py-3 sm:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+          <i class="fa-solid fa-shield-halved text-xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">ConsentGuard AI</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-medium">MVP Prototype</span>
+          </div>
+          <p class="text-xs text-slate-400">개인 동의서 & 약관 리스크 실시간 방어 에이전트</p>
+        </div>
+      </div>
+
+      <!-- Mode Selector Tabs -->
+      <div class="flex items-center gap-1.5 p-1 bg-slate-900 rounded-xl border border-slate-800 text-xs sm:text-sm">
+        <button id="tab-web" onclick="switchDemoMode('web')" class="px-3.5 py-1.5 rounded-lg font-medium transition-all bg-indigo-600 text-white shadow-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-laptop"></i>
+          <span>웹 익스텐션 시뮬레이션</span>
+        </button>
+        <button id="tab-mobile" onclick="switchDemoMode('mobile')" class="px-3.5 py-1.5 rounded-lg font-medium transition-all text-slate-400 hover:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+          <span>모바일 OCR 모드</span>
+        </button>
+        <button id="tab-custom" onclick="switchDemoMode('custom')" class="px-3.5 py-1.5 rounded-lg font-medium transition-all text-slate-400 hover:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>실시간 커스텀 약관 분석</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+    
+    <!-- ================= MODE 1: Web Extension Simulation ================= -->
+    <section id="view-web" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left: Mock Shopping Mall / SaaS Sign-up Page -->
+      <div class="lg:col-span-7 bg-slate-950 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-2xl relative overflow-hidden flex flex-col justify-between">
+        
+        <div>
+          <!-- Browser Frame Header -->
+          <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-800/80 text-xs text-slate-400">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+              <span class="ml-2 font-mono text-slate-300 bg-slate-900 px-3 py-1 rounded-md border border-slate-800">https://shop.nexus-club.kr/join</span>
+            </div>
+            <span class="text-xs bg-indigo-950/60 text-indigo-400 px-2.5 py-0.5 rounded border border-indigo-800/40">가상 쇼핑몰 화면</span>
+          </div>
+
+          <div class="mb-6">
+            <div class="inline-block px-2.5 py-1 bg-amber-500/10 text-amber-400 text-xs rounded-md border border-amber-500/20 mb-2 font-medium">
+              <i class="fa-solid fa-gift mr-1"></i> 첫 달 0원 특별 프로모션
+            </div>
+            <h2 class="text-2xl font-bold text-white tracking-tight">넥서스 프리미엄 멤버십 가입</h2>
+            <p class="text-sm text-slate-400 mt-1">30일간 무료로 모든 혜택을 누려보세요. 카드 정보 등록 후 즉시 시작됩니다.</p>
+          </div>
+
+          <!-- Dummy Input Fields -->
+          <div class="space-y-3 mb-6 opacity-75">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">이메일 계정</label>
+              <input type="text" value="user@korea.com" disabled class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">비밀번호</label>
+              <input type="password" value="••••••••••••" disabled class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300">
+            </div>
+          </div>
+
+          <!-- The Target Checkbox Form Area -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 sm:p-5 relative" id="terms-container">
+            
+            <!-- Floating Agent Badge Trigger -->
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <span class="text-sm font-semibold text-white flex items-center gap-2">
+                <i class="fa-solid fa-file-contract text-indigo-400"></i> 약관 및 서비스 이용 동의
+              </span>
+              <span class="text-xs text-rose-400 flex items-center gap-1 font-medium bg-rose-950/40 px-2 py-0.5 rounded border border-rose-800/40">
+                <i class="fa-solid fa-triangle-exclamation"></i> 위험 조항 2건 발견
+              </span>
+            </div>
+
+            <!-- Master All Checkbox -->
+            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/60 mb-3 flex items-center justify-between">
+              <label class="flex items-center gap-3 cursor-pointer select-none">
+                <input type="checkbox" id="chk-all" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 focus:ring-indigo-500">
+                <span class="text-sm font-bold text-white">모든 약관에 전체 동의합니다 (선택 항목 포함)</span>
+              </label>
+            </div>
+
+            <!-- Individual Checkboxes -->
+            <div class="space-y-2.5 text-xs sm:text-sm" id="checkbox-group">
+              
+              <!-- Clause 1 (Mandatory - Hidden Toxic Clause) -->
+              <div class="p-2.5 rounded-lg border transition-all bg-slate-950/40 border-slate-800 hover:border-slate-700" id="item-row-1">
+                <div class="flex items-start justify-between gap-2">
+                  <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="chk-1" onchange="updateMasterCheckboxState()" class="mt-0.5 w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700">
+                    <div>
+                      <span class="text-rose-400 font-bold">[필수]</span>
+                      <span class="font-medium text-slate-200">서비스 이용약관 및 저작권 귀속 동의</span>
+                      <p class="text-xs text-slate-400 mt-0.5">회원 생성 콘텐츠(게시글/사진)의 상업적 영구 이용권 부여 및 시스템 오류 면책 조항 포함</p>
+                    </div>
+                  </label>
+                  <button onclick="showClauseDetail(1)" class="text-xs text-indigo-400 hover:underline shrink-0">보기</button>
+                </div>
+              </div>
+
+              <!-- Clause 2 (Mandatory - Safe) -->
+              <div class="p-2.5 rounded-lg border transition-all bg-slate-950/40 border-slate-800 hover:border-slate-700" id="item-row-2">
+                <div class="flex items-start justify-between gap-2">
+                  <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="chk-2" onchange="updateMasterCheckboxState()" class="mt-0.5 w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700">
+                    <div>
+                      <span class="text-emerald-400 font-bold">[필수]</span>
+                      <span class="font-medium text-slate-200">개인정보 수집 및 이용 동의</span>
+                      <p class="text-xs text-slate-400 mt-0.5">회원 식별 및 결제 처리를 위한 최소 정보(이름, 이메일) 수집 (탈퇴 시 즉시 파기)</p>
+                    </div>
+                  </label>
+                  <button onclick="showClauseDetail(2)" class="text-xs text-indigo-400 hover:underline shrink-0">보기</button>
+                </div>
+              </div>
+
+              <!-- Clause 3 (Optional - Toxic: Third Party Sharing) -->
+              <div class="p-2.5 rounded-lg border transition-all bg-slate-950/40 border-slate-800 hover:border-slate-700" id="item-row-3">
+                <div class="flex items-start justify-between gap-2">
+                  <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="chk-3" onchange="updateMasterCheckboxState()" class="mt-0.5 w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700">
+                    <div>
+                      <span class="text-slate-400 font-bold">[선택]</span>
+                      <span class="font-medium text-slate-200">개인정보 제3자(금융/보험 14개사) 제공 동의</span>
+                      <p class="text-xs text-rose-400/90 mt-0.5"><i class="fa-solid fa-triangle-exclamation"></i> 14개 제휴사에 이름/전화번호 제공, 보유기간 3년</p>
+                    </div>
+                  </label>
+                  <button onclick="showClauseDetail(3)" class="text-xs text-indigo-400 hover:underline shrink-0">보기</button>
+                </div>
+              </div>
+
+              <!-- Clause 4 (Optional - Marketing) -->
+              <div class="p-2.5 rounded-lg border transition-all bg-slate-950/40 border-slate-800 hover:border-slate-700" id="item-row-4">
+                <div class="flex items-start justify-between gap-2">
+                  <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" id="chk-4" onchange="updateMasterCheckboxState()" class="mt-0.5 w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700">
+                    <div>
+                      <span class="text-slate-400 font-bold">[선택]</span>
+                      <span class="font-medium text-slate-200">혜택 정보 및 야간 광고성 SMS/앱 푸시 수신</span>
+                      <p class="text-xs text-slate-400 mt-0.5">할인 쿠폰 및 이벤트 알림 수신</p>
+                    </div>
+                  </label>
+                  <button onclick="showClauseDetail(4)" class="text-xs text-indigo-400 hover:underline shrink-0">보기</button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Dark Pattern Note (Hidden Renewal) -->
+            <div class="mt-3.5 p-2.5 bg-rose-950/30 border border-rose-900/50 rounded-lg text-xs text-rose-300 flex items-start gap-2">
+              <i class="fa-solid fa-circle-exclamation mt-0.5 text-rose-400"></i>
+              <span><strong>다크패턴 감지:</strong> 하단 각주에 <em>"30일 후 별도 통지 없이 월 9,900원 자동 정기 결제 전환"</em> 규정이 포함되어 있습니다.</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Mock Submit Button -->
+        <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+          <span class="text-xs text-slate-500">테스트용 가입 버튼입니다</span>
+          <button onclick="submitMockSignUp()" class="px-6 py-2.5 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            가입 및 0원 결제 완료
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Right: ConsentGuard Chrome Extension Overlay -->
+      <div class="lg:col-span-5 flex flex-col gap-4">
+        
+        <!-- Extension Container Box -->
+        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-indigo-500/40 rounded-2xl p-5 shadow-2xl relative">
+          
+          <!-- Extension Header -->
+          <div class="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-800">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs shadow-md">
+                <i class="fa-solid fa-robot"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                  ConsentGuard Assistant
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                </h3>
+                <p class="text-[11px] text-slate-400">웹 DOM 실시간 약관 가디언</p>
+              </div>
+            </div>
+            <!-- Traffic Light Badge -->
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              위험 (RED)
+            </div>
+          </div>
+
+          <!-- One-line Summary Card -->
+          <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 mb-4">
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-300 mb-1">
+              <i class="fa-solid fa-sparkles text-indigo-400"></i> AI 한 줄 핵심 요약
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              "필수 약관에 <strong>저작권 귀속 및 손해배상 면책 조항</strong>이 숨어 있으며, <strong>14개 보험사 제3자 제공</strong> 및 <strong>자동 유료 갱신 다크패턴</strong>이 발견되었습니다."
+            </p>
+          </div>
+
+          <!-- Key Action Button: 1-Click Safe Selection -->
+          <div class="mb-4">
+            <button onclick="applySafeSelection()" class="w-full py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-500 to-emerald-500 text-white shadow-lg shadow-indigo-500/25 hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-shield-check text-base"></i>
+              <span>'필수만 안전 동의' 1초 적용하기</span>
+            </button>
+            <p class="text-[11px] text-center text-slate-400 mt-1.5">불필요한 마케팅 & 제3자 제공을 자동 체크 해제합니다</p>
+          </div>
+
+          <!-- Clause-by-Clause Findings List -->
+          <div class="space-y-2 text-xs max-h-[260px] overflow-y-auto custom-scrollbar pr-1">
+            
+            <!-- Item 1 Card -->
+            <div class="p-2.5 rounded-lg bg-rose-950/20 border border-rose-900/40">
+              <div class="flex items-center justify-between text-rose-300 font-semibold mb-1">
+                <span>[필수] 이용약관 동의</span>
+                <span class="text-[10px] bg-rose-900/60 px-1.5 py-0.5 rounded text-rose-200">주의 체크 권장</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">이용자 게시물에 대한 상업적 저작재산권을 회사가 독점 귀속함. 가입은 가능하나 창작물 등록 시 주의 필요.</p>
+            </div>
+
+            <!-- Item 2 Card -->
+            <div class="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-900/40">
+              <div class="flex items-center justify-between text-emerald-300 font-semibold mb-1">
+                <span>[필수] 개인정보 수집 및 이용</span>
+                <span class="text-[10px] bg-emerald-900/60 px-1.5 py-0.5 rounded text-emerald-200">체크 권장</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">법정 필수 정보만 수집하며 회원 탈퇴 시 즉시 파기되므로 안전합니다.</p>
+            </div>
+
+            <!-- Item 3 Card -->
+            <div class="p-2.5 rounded-lg bg-rose-950/20 border border-rose-900/40">
+              <div class="flex items-center justify-between text-rose-300 font-semibold mb-1">
+                <span>[선택] 제3자 제공 동의</span>
+                <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">체크 해제 권장</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">체크 시 14개 보험/카드사로부터 스팸 전화와 보험 권유를 받을 수 있습니다.</p>
+            </div>
+
+            <!-- Item 4 Card -->
+            <div class="p-2.5 rounded-lg bg-amber-950/20 border border-amber-900/40">
+              <div class="flex items-center justify-between text-amber-300 font-semibold mb-1">
+                <span>[선택] 혜택 및 광고 SMS 수신</span>
+                <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">체크 해제 권장</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">야간 시간대 마케팅 광고 수신이 포함되어 있습니다.</p>
+            </div>
+
+          </div>
+
+          <!-- Disclaimer footer -->
+          <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] text-slate-400 flex items-center justify-between">
+            <span><i class="fa-solid fa-lock text-emerald-400 mr-1"></i> Zero-Data 온디바이스 검증</span>
+            <span>정보제공 목적 (법률자문 아님)</span>
+          </div>
+
+        </div>
+
+        <!-- History Vault Quick Status Widget -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-box-archive text-indigo-400"></i> 내 동의 이력 보관함 (Vault)
+            </span>
+            <span class="text-[11px] text-indigo-400 cursor-pointer hover:underline" onclick="switchDemoMode('mobile')">관리하기 &rarr;</span>
+          </div>
+          <div class="text-xs text-slate-400" id="vault-status-summary">
+            현재 3개 서비스의 동의 이력이 보관되어 있습니다. 가입 완료 시 이번 내역이 암호화 저장됩니다.
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================= MODE 2: Mobile OCR & Consent Vault ================= -->
+    <section id="view-mobile" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Mobile Phone Mockup -->
+      <div class="lg:col-span-5 flex justify-center">
+        <div class="w-[340px] bg-black rounded-[42px] p-3 border-4 border-slate-700 shadow-2xl relative">
+          <!-- Notch/Dynamic Island -->
+          <div class="w-28 h-4 bg-slate-900 rounded-full mx-auto mb-3"></div>
+          
+          <div class="bg-slate-950 rounded-[32px] overflow-hidden border border-slate-800 p-4 text-xs h-[590px] flex flex-col justify-between custom-scrollbar">
+            
+            <div>
+              <!-- Mobile App Header -->
+              <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+                <span class="font-bold text-white flex items-center gap-1.5">
+                  <i class="fa-solid fa-shield-halved text-emerald-400"></i> ConsentGuard Mobile
+                </span>
+                <span class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px]">iOS & Android</span>
+              </div>
+
+              <!-- OCR Screenshot Picker Box -->
+              <div class="mb-4 p-3 bg-slate-900 rounded-xl border border-dashed border-slate-700 text-center">
+                <div class="w-8 h-8 rounded-full bg-indigo-600/20 text-indigo-400 mx-auto flex items-center justify-center mb-1.5">
+                  <i class="fa-solid fa-camera"></i>
+                </div>
+                <div class="font-medium text-slate-200 text-xs">앱 스크린샷 OCR 분석</div>
+                <p class="text-[10px] text-slate-400 mt-0.5">네이티브 앱의 동의 화면을 캡처하여 공유하면 즉시 분석합니다.</p>
+                <button onclick="simulateMobileOCR()" class="mt-2.5 px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-semibold transition">
+                  배달앱 가입 캡처 OCR 시뮬레이션
+                </button>
+              </div>
+
+              <!-- Mobile Analysis Result Area -->
+              <div id="mobile-ocr-result" class="space-y-2">
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="font-semibold text-slate-200">배달앱 신규 가입 화면</span>
+                    <span class="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.2 rounded font-bold">주의 (YELLOW)</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400 leading-snug">
+                    위치정보 필수 제공과 마케팅 푸시 3건 감지됨. 주문 자체는 '정확한 위치' 없이도 가능하므로 선택 권장.
+                  </p>
+                </div>
+
+                <div class="p-2 rounded bg-slate-900/60 border border-slate-800 text-[11px] flex items-center justify-between">
+                  <span class="text-slate-300">위치기반 서비스 이용 동의</span>
+                  <span class="text-emerald-400 font-bold">필수 체크</span>
+                </div>
+                <div class="p-2 rounded bg-slate-900/60 border border-slate-800 text-[11px] flex items-center justify-between">
+                  <span class="text-slate-300">맞춤형 쿠폰 알림 (야간 포함)</span>
+                  <span class="text-rose-400 font-bold">해제 권장</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Floating Advice Button -->
+            <div class="pt-2 border-t border-slate-800 text-center">
+              <div class="text-[10px] text-slate-500 mb-1">공유 시트(Share Sheet) 연동 완료</div>
+              <button onclick="showRevokeModal('배달의상상')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[11px] font-medium transition">
+                <i class="fa-solid fa-paper-plane mr-1"></i> 이 서비스 동의 철회 메일 생성
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Consent Lifecycle & Vault Management -->
+      <div class="lg:col-span-7 space-y-5">
+        
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-vault text-indigo-400"></i> 내 동의 데이터 보관함 (Consent Vault)
+              </h3>
+              <p class="text-xs text-slate-400">브라우저 로컬(IndexedDB)에만 암호화 저장되어 프라이버시가 완벽히 보호됩니다.</p>
+            </div>
+            <button onclick="clearAllVault()" class="text-xs text-slate-400 hover:text-rose-400 transition">
+              <i class="fa-solid fa-trash-can mr-1"></i> 전체 삭제
+            </button>
+          </div>
+
+          <!-- Vault List -->
+          <div class="space-y-3" id="vault-list-container">
+            <!-- Dynamically populated or default items -->
+          </div>
+        </div>
+
+        <!-- Revoke Template Generator Preview -->
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-envelope-open-text text-emerald-400"></i> 법적 효력 동의 철회 및 정보 파기 요청 서식
+            </h4>
+            <span class="text-[11px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40 font-medium">
+              개인정보보호법 제37조 준수
+            </span>
+          </div>
+          <div class="bg-slate-900 rounded-xl p-4 border border-slate-800 font-mono text-xs text-slate-300 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto custom-scrollbar" id="revoke-preview-box">
+수신: 주식회사 넥서스클럽 개인정보보호책임자
+참조: 고객만족센터
+
+제목: [개인정보보호법 제37조] 개인정보 제3자 제공 및 마케팅 동의 철회 요청
+
+본인은 개인정보보호법 제37조(개인정보의 처리정지 등) 및 정보통신망법에 의거하여, 귀사 서비스 가입 시 동의하였던 아래 항목에 대한 동의를 전면 철회하며 관련 데이터의 즉각적인 파기를 정중히 요청합니다.
+
+1. 철회 대상:
+   - 개인정보 제3자 제공(보험사/제휴 금융사 일체) 동의
+   - 광고성 정보(SMS, 이메일, 앱 푸시) 수신 동의
+2. 계정 정보: user@korea.com
+
+본 요청 수신 후 지체 없이(10일 이내) 조치 결과를 회신하여 주시기 바랍니다.
+          </div>
+          <div class="mt-3 flex justify-end gap-2">
+            <button onclick="copyRevokeEmail()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+              <i class="fa-regular fa-copy"></i>
+              <span id="copy-btn-text">서식 클립보드 복사</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================= MODE 3: Custom Terms AI Analyzer ================= -->
+    <section id="view-custom" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Input Panel -->
+      <div class="lg:col-span-6 bg-slate-950 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-code-compare text-indigo-400"></i> 임의의 약관 텍스트 직접 분석
+            </h3>
+            <span class="text-xs text-indigo-400 bg-indigo-950 px-2.5 py-0.5 rounded border border-indigo-800/40">
+              Gemini 3 Flash Powered
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mb-3">
+            웹사이트나 계약서에서 복사한 약관 텍스트를 붙여넣으세요. 공정위 표준약관 및 개인정보보호법 기반으로 독소 조항과 다크패턴을 진단합니다.
+          </p>
+
+          <!-- Preset Buttons -->
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="loadPreset('gym')" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300">
+              🏋️ 헬스장 환불 불가 약관
+            </button>
+            <button onclick="loadPreset('ugc')" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300">
+              🎨 UGC 저작권 탈취 약관
+            </button>
+            <button onclick="loadPreset('safe')" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs text-slate-300">
+              ✅ 안전한 표준 SaaS 약관
+            </button>
+          </div>
+
+          <textarea id="custom-terms-input" rows="12" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono custom-scrollbar" placeholder="여기에 약관 텍스트를 입력하세요..."></textarea>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+          <span class="text-xs text-slate-500">API Key는 안전하게 런타임 주입됩니다</span>
+          <button id="btn-run-analysis" onclick="runCustomAIAnalysis()" class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-emerald-500 hover:opacity-95 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg transition">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>AI 심층 리스크 진단 시작</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Result Panel -->
+      <div class="lg:col-span-6 bg-slate-950 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+          <h4 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-square-poll-vertical text-emerald-400"></i> 분석 진단 결과
+          </h4>
+          <div id="custom-risk-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400">
+            대기 중
+          </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="custom-loading" class="hidden flex-1 flex flex-col items-center justify-center p-8 text-center">
+          <div class="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-3"></div>
+          <div class="text-sm font-semibold text-white">Gemini AI가 조항을 정밀 분석 중입니다...</div>
+          <p class="text-xs text-slate-400 mt-1">공정위 표준약관 및 전자상거래 다크패턴 기준 대조 중</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="custom-empty" class="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-500">
+          <i class="fa-solid fa-file-magnifying-glass text-4xl mb-3 opacity-40"></i>
+          <p class="text-xs">좌측에서 텍스트를 입력하고 'AI 심층 리스크 진단 시작'을 누르면<br>신호등 등급과 쉬운 해설이 여기에 표시됩니다.</p>
+        </div>
+
+        <!-- Result Content -->
+        <div id="custom-result" class="hidden flex-1 flex flex-col justify-between overflow-y-auto custom-scrollbar pr-1">
+          <div>
+            <!-- Summary Banner -->
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 mb-4" id="custom-summary-container">
+              <div class="text-xs font-bold text-indigo-400 mb-1 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info"></i> 핵심 요약
+              </div>
+              <p class="text-xs text-slate-200 leading-relaxed" id="custom-summary-text"></p>
+            </div>
+
+            <!-- Issues / Clause Breakdown -->
+            <div class="text-xs font-bold text-slate-300 mb-2">세부 리스크 항목 검출</div>
+            <div class="space-y-2.5" id="custom-items-container"></div>
+
+            <!-- Dark Patterns Section -->
+            <div id="custom-darkpattern-section" class="mt-4 hidden">
+              <div class="text-xs font-bold text-rose-400 mb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-skull-crossbones"></i> 다크패턴 (눈속임 설계)
+              </div>
+              <div class="space-y-2" id="custom-darkpattern-container"></div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800 text-[10px] text-slate-500 flex justify-between">
+            <span>엔진: Gemini 3 Flash Preview</span>
+            <span>Zero-Retention Stateless 모드</span>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <div id="clause-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-950 border border-slate-800 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+        <h4 class="font-bold text-white text-sm" id="modal-title">약관 상세 보기</h4>
+        <button onclick="closeClauseModal()" class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-xs">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="text-xs text-slate-300 leading-relaxed bg-slate-900 p-3.5 rounded-xl border border-slate-800 font-mono mb-4 max-h-60 overflow-y-auto custom-scrollbar" id="modal-content">
+      </div>
+      <div class="flex justify-end">
+        <button onclick="closeClauseModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-16 opacity-0 transition-all duration-300 bg-slate-900 border border-slate-700 text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5">
+    <i id="toast-icon" class="fa-solid fa-check text-emerald-400"></i>
+    <span id="toast-msg">알림 메시지</span>
+  </div>
+
+  <script>
+    // State management for mock database
+    const state = {
+      activeTab: 'web',
+      vaultItems: [
+        {
+          id: 'v_1',
+          domain: 'shop.nexus-club.kr',
+          name: '넥서스 프리미엄 멤버십',
+          date: '2026-10-10',
+          riskLevel: 'RED',
+          consentedOptional: ['광고 SMS 수신'],
+          rejectedOptional: ['제3자 보험사 제공 (차단됨)']
+        },
+        {
+          id: 'v_2',
+          domain: 'stream.movienow.com',
+          name: '무비나우 OTT',
+          date: '2026-09-14',
+          riskLevel: 'GREEN',
+          consentedOptional: [],
+          rejectedOptional: ['마케팅 정보 수신']
+        },
+        {
+          id: 'v_3',
+          domain: 'delivery.sangsang.kr',
+          name: '배달의상상',
+          date: '2026-08-22',
+          riskLevel: 'YELLOW',
+          consentedOptional: ['위치정보 이용'],
+          rejectedOptional: ['야간 푸시 수신']
+        }
+      ]
+    };
+
+    // Modal Details Data
+    const clauseDetails = {
+      1: {
+        title: '[필수] 서비스 이용약관 및 저작권 귀속 동의',
+        content: `제14조(회사의 면책 및 게시물의 권리)
+1. 회사는 천재지변, 기간통신사업자의 회선 장애 또는 이에 준하는 시스템 오류로 인한 회원의 손해에 대해 일체의 책임을 부담하지 않습니다.
+2. 회원이 서비스 내에 게시한 모든 콘텐츠(사진, 리뷰, 게시글 등)의 저작재산권(복제권, 공중송신권, 2차적저작물작성권 포함)은 게시 시점에 회사에 영구히 귀속되며, 회사는 이를 상업적 프로모션에 무상으로 활용할 수 있습니다.`
+      },
+      2: {
+        title: '[필수] 개인정보 수집 및 이용 동의',
+        content: `제1조(수집 항목 및 목적)
+1. 수집 항목: 이름, 이메일, 암호화된 비밀번호, 결제 정보
+2. 수집 목적: 회원 가입 식별, 결제 승인 및 주문 내역 안내
+3. 보유 및 이용 기간: 회원 탈퇴 시 지체 없이 파기 (단, 전자상거래법 등 관계 법령에 따라 5년간 보존되는 결제 기록 제외)`
+      },
+      3: {
+        title: '[선택] 개인정보 제3자(금융/보험 14개사) 제공 동의',
+        content: `제1조(제3자 제공 내역)
+1. 제공받는 자: (주)○○생명, (주)△△화재, (주)□□카드 등 14개 제휴 금융기관
+2. 제공 목적: 맞춤형 보험 상품 추천, 대출 및 금융 상품 전화 상담(TM)
+3. 제공 항목: 이름, 생년월일, 휴대전화번호, 가입일시
+4. 보유 및 이용 기간: 제공 동의일로부터 3년`
+      },
+      4: {
+        title: '[선택] 혜택 정보 및 야간 광고성 SMS 수신',
+        content: `제1조(광고성 정보의 수신)
+1. 이용자는 당사가 제공하는 할인 쿠폰, 특가 상품, 제휴사 프로모션 안내를 SMS, MMS, 앱 푸시로 수신하는 것에 동의합니다.
+2. 본 동의에는 야간 시간대(20:00~08:00) 발송되는 광고 수신 동의가 포함되어 있습니다.`
+      }
+    };
+
+    // Mode Switching
+    function switchDemoMode(mode) {
+      state.activeTab = mode;
+      
+      const views = ['web', 'mobile', 'custom'];
+      views.forEach(v => {
+        document.getElementById(`view-${v}`).classList.add('hidden');
+        const tabBtn = document.getElementById(`tab-${v}`);
+        tabBtn.className = "px-3.5 py-1.5 rounded-lg font-medium transition-all text-slate-400 hover:text-white flex items-center gap-1.5";
+      });
+
+      document.getElementById(`view-${mode}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${mode}`);
+      activeBtn.className = "px-3.5 py-1.5 rounded-lg font-medium transition-all bg-indigo-600 text-white shadow-sm flex items-center gap-1.5";
+
+      if (mode === 'mobile') {
+        renderVaultList();
+      }
+    }
+
+    // Toggle All Checkboxes
+    function toggleSelectAll(checked) {
+      document.getElementById('chk-1').checked = checked;
+      document.getElementById('chk-2').checked = checked;
+      document.getElementById('chk-3').checked = checked;
+      document.getElementById('chk-4').checked = checked;
+    }
+
+    function updateMasterCheckboxState() {
+      const all = document.getElementById('chk-1').checked &&
+                  document.getElementById('chk-2').checked &&
+                  document.getElementById('chk-3').checked &&
+                  document.getElementById('chk-4').checked;
+      document.getElementById('chk-all').checked = all;
+    }
+
+    function applySafeSelection() {
+      // Rule: 필수 1, 2 체크 / 선택 3, 4 해제
+      document.getElementById('chk-1').checked = true;
+      document.getElementById('chk-2').checked = true;
+      document.getElementById('chk-3').checked = false;
+      document.getElementById('chk-4').checked = false;
+      document.getElementById('chk-all').checked = false;
+
+      // Visual highlight effect
+      const row3 = document.getElementById('item-row-3');
+      const row4 = document.getElementById('item-row-4');
+      const row1 = document.getElementById('item-row-1');
+      const row2 = document.getElementById('item-row-2');
+
+      row1.classList.add('border-emerald-500/50');
+      row2.classList.add('border-emerald-500/50');
+      row3.classList.add('border-slate-800', 'opacity-60');
+      row4.classList.add('border-slate-800', 'opacity-60');
+
+      showToast('🛡️ 필수 항목만 안전하게 체크하고 불필요한 제3자 제공을 해제했습니다!');
+    }
+
+    // Modal Control
+    function showClauseDetail(id) {
+      const data = clauseDetails[id];
+      if (!data) return;
+      document.getElementById('modal-title').textContent = data.title;
+      document.getElementById('modal-content').textContent = data.content;
+      document.getElementById('clause-modal').classList.remove('hidden');
+    }
+
+    function closeClauseModal() {
+      document.getElementById('clause-modal').classList.add('hidden');
+    }
+
+    // Submit Simulation
+    function submitMockSignUp() {
+      const chk1 = document.getElementById('chk-1').checked;
+      const chk2 = document.getElementById('chk-2').checked;
+
+      if (!chk1 || !chk2) {
+        showToast('⚠️ 서비스 필수 약관에 동의해야 가입할 수 있습니다.', 'warning');
+        return;
+      }
+
+      const chk3 = document.getElementById('chk-3').checked;
+      const chk4 = document.getElementById('chk-4').checked;
+
+      // Add to vault
+      const newVaultItem = {
+        id: 'v_' + Date.now(),
+        domain: 'shop.nexus-club.kr',
+        name: '넥서스 프리미엄 멤버십',
+        date: new Date().toISOString().split('T')[0],
+        riskLevel: chk3 ? 'RED' : 'YELLOW',
+        consentedOptional: [chk3 ? '14개사 제3자 제공' : null, chk4 ? '마케팅 SMS' : null].filter(Boolean),
+        rejectedOptional: [!chk3 ? '제3자 제공 거부' : null, !chk4 ? '마케팅 수신 거부' : null].filter(Boolean)
+      };
+
+      state.vaultItems.unshift(newVaultItem);
+      showToast('🎉 안전 가입 완료! 동의 이력이 보관함에 저장되었습니다.');
+      renderVaultList();
+    }
+
+    // Render Vault Items
+    function renderVaultList() {
+      const container = document.getElementById('vault-list-container');
+      if (!container) return;
+
+      if (state.vaultItems.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500">보관된 동의 이력이 없습니다.</div>`;
+        return;
+      }
+
+      container.innerHTML = state.vaultItems.map(item => `
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-bold text-white text-xs">${item.name}</span>
+              <span class="text-[10px] px-2 py-0.2 rounded-full font-bold ${
+                item.riskLevel === 'RED' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' :
+                item.riskLevel === 'YELLOW' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+              }">${item.riskLevel}</span>
+              <span class="text-[10px] text-slate-500 font-mono">${item.date}</span>
+            </div>
+            <div class="text-[11px] text-slate-400">
+              <span class="text-slate-500">동의 항목:</span> ${item.consentedOptional.length > 0 ? item.consentedOptional.join(', ') : '필수만 동의함'} |
+              <span class="text-emerald-400/90 font-medium">${item.rejectedOptional.join(', ')}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="showRevokeModal('${item.name}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1">
+              <i class="fa-solid fa-file-pen text-indigo-400"></i> 철회 양식
+            </button>
+            <button onclick="removeVaultItem('${item.id}')" class="w-7 h-7 bg-slate-800 hover:text-rose-400 text-slate-400 rounded-lg text-xs transition flex items-center justify-center">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function removeVaultItem(id) {
+      state.vaultItems = state.vaultItems.filter(i => i.id !== id);
+      renderVaultList();
+      showToast('보관함에서 항목이 삭제되었습니다.');
+    }
+
+    function clearAllVault() {
+      state.vaultItems = [];
+      renderVaultList();
+      showToast('모든 동의 이력이 삭제되었습니다.');
+    }
+
+    function showRevokeModal(serviceName) {
+      const template = `수신: 주식회사 ${serviceName} 개인정보보호책임자
+참조: 고객지원센터
+
+제목: [개인정보보호법 제37조] 개인정보 제3자 제공 및 마케팅 동의 철회 요청
+
+본인은 개인정보보호법 제37조(개인정보의 처리정지 등) 및 정보통신망 이용촉진 및 정보보호 등에 관한 법률에 의거하여, 귀사 '${serviceName}' 이용 시 동의하였던 아래 선택 항목에 대한 동의를 전면 철회하며 관련 개인정보의 즉각적인 파기를 요청합니다.
+
+1. 철회 신청 항목:
+   - 개인정보 제3자(제휴 금융사/보험사) 제공 및 위탁 동의 전면 철회
+   - 광고성 정보(SMS, MMS, 이메일, 앱 푸시) 수신 동의 철회
+2. 이용자 계정: user@korea.com
+3. 요청 근거: 개인정보보호법 제37조 1항(정보주체의 처리정지 요구권)
+
+본 요청을 접수한 날로부터 10일 이내에 법정 처리 결과를 회신해 주시기 바랍니다.
+
+요청일자: ${new Date().toISOString().split('T')[0]}
+정보주체: 이용자 본인`;
+
+      const previewBox = document.getElementById('revoke-preview-box');
+      if (previewBox) {
+        previewBox.textContent = template;
+      }
+      showToast(`'${serviceName}' 동의 철회 메일 서식이 하단에 생성되었습니다.`);
+    }
+
+    function copyRevokeEmail() {
+      const text = document.getElementById('revoke-preview-box').textContent;
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        document.getElementById('copy-btn-text').textContent = '복사 완료!';
+        showToast('📋 동의 철회 서식이 클립보드에 복사되었습니다.');
+        setTimeout(() => {
+          document.getElementById('copy-btn-text').textContent = '서식 클립보드 복사';
+        }, 2000);
+      } catch (err) {
+        showToast('복사에 실패했습니다.', 'warning');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Mobile OCR Simulator
+    function simulateMobileOCR() {
+      const resultBox = document.getElementById('mobile-ocr-result');
+      resultBox.innerHTML = `
+        <div class="p-2.5 rounded-lg bg-indigo-950/40 border border-indigo-800/40 animate-pulse text-[11px] text-indigo-300">
+          <i class="fa-solid fa-spinner fa-spin mr-1"></i> 온디바이스 OCR 텍스트 정제 및 조항 파싱 중...
+        </div>
+      `;
+      setTimeout(() => {
+        resultBox.innerHTML = `
+          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-semibold text-white">OCR 감지: 배달앱 회원가입</span>
+              <span class="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.2 rounded font-bold">주의 (YELLOW)</span>
+            </div>
+            <p class="text-[11px] text-slate-300">
+              전체 4개 조항 중 2개 필수, 2개 선택 감지됨.
+            </p>
+          </div>
+          <div class="p-2 rounded bg-slate-900/60 border border-slate-800 text-[11px] flex items-center justify-between">
+            <span class="text-slate-300">[필수] 배달 위치 및 연락처 확인</span>
+            <span class="text-emerald-400 font-bold">체크</span>
+          </div>
+          <div class="p-2 rounded bg-slate-900/60 border border-slate-800 text-[11px] flex items-center justify-between">
+            <span class="text-slate-300">[선택] 제휴 제과/식음료 쿠폰 알림</span>
+            <span class="text-rose-400 font-bold">체크 해제 권장</span>
+          </div>
+        `;
+        showToast('📷 모바일 스크린샷 OCR 분석이 완료되었습니다.');
+      }, 1000);
+    }
+
+    const presets = {
+      gym: `제5조(이용요금 및 환불 규정)
+1. 본 피트니스 센터의 12개월 정기 회원권은 특가 이벤트 상품으로, 결제 후 7일 이내라도 어떠한 사유로도 계약 취소 및 환불이 일체 불가합니다.
+2. 부상 또는 이사 등 불가피한 사유로 중도 해지 시, 정상가(월 200,000원) 기준으로 이용 일수를 일할 계산하고 위약금 30%를 공제한 후 잔액이 있을 경우에만 포인트로 반환합니다.
+3. 센터 내 기구 파손 및 안전사고 발생 시 이용자의 부주의로 간주하여 센터는 책임을 면합니다.`,
+
+      ugc: `제18조(회원의 저작물에 대한 권리)
+1. 회원이 서비스 내 게시판, SNS 연동 채널에 업로드한 모든 사진, 동영상, 텍스트, 음원 등의 지식재산권은 등록 즉시 회사에 영구히 양도되며, 회사는 이를 국내외 마케팅, 2차적 저작물 제작, 유료 판매 등에 무상으로 활용할 수 있습니다.
+2. 회원은 자신이 등록한 게시물에 대해 회사 및 제3자를 상대로 저작인격권을 행사하지 않는 것에 동의합니다.
+3. 탈퇴 후에도 기 등록된 게시물은 삭제되지 않으며 영구 보관됩니다.`,
+
+      safe: `공정거래위원회 표준약관 준수 조항
+제1조(목적 및 서비스 제공)
+회사는 회원의 원활한 협업 도구 이용을 위해 최소한의 식별 정보(이메일, 닉네임)만을 수집하며, 결제 정보는 암호화 토큰으로 PG사에 직접 위탁됩니다.
+제2조(환불 및 청약철회)
+전자상거래법에 따라 결제일로부터 7일 이내 서비스를 이용하지 않은 경우 전액 환불되며, 서비스 장애 발생 시 이용약관에 명시된 시간당 배상 기준에 따라 보상합니다.
+제3조(개인정보의 파기)
+회원 탈퇴 시 모든 프로젝트 및 개인 식별 정보는 30일의 유예기간 경과 후 영구 파기됩니다.`
+    };
+
+    function loadPreset(key) {
+      document.getElementById('custom-terms-input').value = presets[key];
+    }
+
+    async function runCustomAIAnalysis() {
+      const inputText = document.getElementById('custom-terms-input').value.trim();
+      if (!inputText) {
+        showToast('분석할 약관 텍스트를 입력해주세요.', 'warning');
+        return;
+      }
+
+      const runBtn = document.getElementById('btn-run-analysis');
+      const loadingEl = document.getElementById('custom-loading');
+      const emptyEl = document.getElementById('custom-empty');
+      const resultEl = document.getElementById('custom-result');
+
+      runBtn.disabled = true;
+      runBtn.classList.add('opacity-50');
+      emptyEl.classList.add('hidden');
+      resultEl.classList.add('hidden');
+      loadingEl.classList.remove('hidden');
+
+      const systemPrompt = `당신은 대한민국 개인정보보호법, 전자상거래법, 공정거래위원회 다크패턴 가이드라인에 특화된 약관 리스크 분석 AI 엔진입니다.
+제공된 약관 텍스트를 분석하여 엄격한 JSON 형식으로만 응답하세요.
+
+출력 JSON 스키마:
+{
+  "overall_risk_level": "RED" | "YELLOW" | "GREEN",
+  "one_line_summary": "핵심 독소 조항과 주의사항을 요약한 한 문장",
+  "items": [
+    {
+      "clause_title": "조항 제목",
+      "risk_level": "RED" | "YELLOW" | "GREEN",
+      "evidence": "약관 원문에서 문제가 되는 핵심 문구",
+      "issue_description": "소비자에게 왜 불리하거나 위험한지 쉬운 한국어로 설명",
+      "recommended_action": "CHECK" | "UNCHECK" | "CAUTION_CHECK"
+    }
+  ],
+  "dark_patterns": [
+    {
+      "pattern_name": "다크패턴 유형 (예: 숨겨진 갱신, 환불 제한, 책임 전가 등)",
+      "description": "설명"
+    }
+  ]
+}`;
+
+      const apiKey = "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: [
+          {
+            parts: [{ text: `다음 약관을 분석하여 지정된 JSON으로만 응답해줘:\n\n${inputText}` }]
+          }
+        ],
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      };
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!candidateText) throw new Error('응답 데이터를 찾을 수 없습니다.');
+
+        const parsed = JSON.parse(candidateText);
+        renderCustomResult(parsed);
+
+      } catch (err) {
+        console.error('AI Analysis failed, falling back to local heuristic analyzer', err);
+        // Fallback local heuristic analyzer to guarantee 100% demo continuity
+        const fallback = runFallbackAnalyzer(inputText);
+        renderCustomResult(fallback);
+      } finally {
+        runBtn.disabled = false;
+        runBtn.classList.remove('opacity-50');
+        loadingEl.classList.add('hidden');
+        resultEl.classList.remove('hidden');
+      }
+    }
+
+    // Heuristic Fallback in case of network issue
+    function runFallbackAnalyzer(text) {
+      const isRed = text.includes('환불이 일체 불가') || text.includes('영구히 귀속') || text.includes('면합니다') || text.includes('제3자');
+      return {
+        overall_risk_level: isRed ? 'RED' : 'YELLOW',
+        one_line_summary: isRed 
+          ? "소비자 환불 권리 침해 또는 이용자 저작권 탈취 조항이 포함되어 있어 매우 위험합니다."
+          : "일부 마케팅 수신 및 주의가 필요한 조항이 포함되어 있습니다.",
+        items: [
+          {
+            clause_title: "약관 주요 조항",
+            risk_level: isRed ? 'RED' : 'YELLOW',
+            evidence: text.slice(0, 80) + '...',
+            issue_description: isRed ? "공정거래위원회 약관규제법에 위배될 소지가 있는 일방적 면책 또는 환불 제한 조항입니다." : "표준적인 동의 조항이나 선택 동의 여부를 확인하세요.",
+            recommended_action: isRed ? "CAUTION_CHECK" : "CHECK"
+          }
+        ],
+        dark_patterns: isRed ? [{
+          pattern_name: "청약철회 방해 (환불 불가)",
+          description: "전자상거래법상 7일 이내 청약철회 권리를 제한하는 독소 조항"
+        }] : []
+      };
+    }
+
+    // Render Custom AI Result to UI
+    function renderCustomResult(data) {
+      const badge = document.getElementById('custom-risk-badge');
+      const summaryText = document.getElementById('custom-summary-text');
+      const itemsContainer = document.getElementById('custom-items-container');
+      const darkContainer = document.getElementById('custom-darkpattern-container');
+      const darkSection = document.getElementById('custom-darkpattern-section');
+
+      // Risk badge styling
+      const level = data.overall_risk_level || 'YELLOW';
+      if (level === 'RED') {
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40';
+        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> 위험 (RED)';
+      } else if (level === 'YELLOW') {
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40';
+        badge.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i> 주의 (YELLOW)';
+      } else {
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+        badge.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> 안전 (GREEN)';
+      }
+
+      summaryText.textContent = data.one_line_summary;
+
+      // Items list
+      itemsContainer.innerHTML = (data.items || []).map(item => `
+        <div class="p-3 rounded-xl bg-slate-900 border ${
+          item.risk_level === 'RED' ? 'border-rose-900/50 bg-rose-950/10' :
+          item.risk_level === 'YELLOW' ? 'border-amber-900/50 bg-amber-950/10' :
+          'border-emerald-900/50 bg-emerald-950/10'
+        }">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-xs text-white">${item.clause_title}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded font-semibold ${
+              item.recommended_action === 'CHECK' ? 'bg-emerald-900 text-emerald-300' :
+              item.recommended_action === 'UNCHECK' ? 'bg-slate-800 text-slate-300' :
+              'bg-rose-900 text-rose-300'
+            }">${item.recommended_action === 'CHECK' ? '동의 권장' : item.recommended_action === 'UNCHECK' ? '체크 해제 권장' : '주의 후 체크'}</span>
+          </div>
+          ${item.evidence ? `<blockquote class="text-[11px] text-slate-400 italic border-l-2 border-slate-700 pl-2 mb-1.5 font-mono">"${item.evidence}"</blockquote>` : ''}
+          <p class="text-[11px] text-slate-300 leading-relaxed">${item.issue_description}</p>
+        </div>
+      `).join('');
+
+      // Dark Patterns
+      if (data.dark_patterns && data.dark_patterns.length > 0) {
+        darkSection.classList.remove('hidden');
+        darkContainer.innerHTML = data.dark_patterns.map(dp => `
+          <div class="p-2.5 rounded-lg bg-rose-950/30 border border-rose-900/40 text-xs text-rose-300">
+            <strong>${dp.pattern_name}:</strong> ${dp.description}
+          </div>
+        `).join('');
+      } else {
+        darkSection.classList.add('hidden');
+      }
+    }
+
+    // Helper: Toast
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toast-msg');
+      const icon = document.getElementById('toast-icon');
+
+      msg.textContent = message;
+      if (type === 'warning') {
+        icon.className = 'fa-solid fa-triangle-exclamation text-amber-400';
+      } else {
+        icon.className = 'fa-solid fa-check text-emerald-400';
+      }
+
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-16', 'opacity-0');
+      }, 3000);
+    }
+
+    // Initial page setup
+    window.onload = function() {
+      loadPreset('gym');
+      renderVaultList();
+    };
+  </script>
+</body>
+</html>

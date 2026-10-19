@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "ConsentGuard AI - 개인 동의서 실시간 방어 에이전트",
+  "version": "1.0.0",
+  "description": "약관 독소조항 및 다크패턴을 신호등으로 진단하고, 원클릭으로 필수 항목만 안전 동의하는 AI 에이전트",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/background/index.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/index.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_title": "ConsentGuard AI 보관함"
+  }
+}
