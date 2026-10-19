@@ -26,6 +26,8 @@ consentGuard_Ai/
 ├── README.md                          # 프로젝트 메인 문서
 ├── AGENTS.md                          # AI 에이전트 개발 규칙 및 하네스 가이드
 ├── consentguard_ai.md                 # 마스터 기획 및 기술 설계서 (v1.0.0)
+├── docs/
+│   └── ARCHITECTURE.md                # 상세 기술 아키텍처 설계서 (LLD / 다이어그램)
 ├── consentguard_ai.html               # 인터랙티브 UI/UX 프로토타입 데모 (단독 실행 가능)
 ├── package.json                       # 루트 모노레포 워크스페이스 설정
 ├── .env.example                       # 환경변수 템플릿

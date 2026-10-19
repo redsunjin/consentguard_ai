@@ -819,14 +819,19 @@
       showToast(`'${serviceName}' 동의 철회 메일 서식이 하단에 생성되었습니다.`);
     }
 
-    function copyRevokeEmail() {
+    async function copyRevokeEmail() {
       const text = document.getElementById('revoke-preview-box').textContent;
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
       try {
-        document.execCommand('copy');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+        }
         document.getElementById('copy-btn-text').textContent = '복사 완료!';
         showToast('📋 동의 철회 서식이 클립보드에 복사되었습니다.');
         setTimeout(() => {
@@ -835,7 +840,6 @@
       } catch (err) {
         showToast('복사에 실패했습니다.', 'warning');
       }
-      document.body.removeChild(textarea);
     }
 
     // Mobile OCR Simulator
