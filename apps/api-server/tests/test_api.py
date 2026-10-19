@@ -13,10 +13,15 @@ API_ROOT = Path(__file__).resolve().parents[1]
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
-from app.api.v1.clauses import analyze_clauses, generate_revoke_template
+from app.api.v1.clauses import (
+    analyze_clauses,
+    generate_revoke_template,
+    preprocess_ocr_clauses,
+)
 from app.core.prompt import (
     AnalyzeClausesRequest,
     ClauseInputItem,
+    PreprocessOcrRequest,
     RevokeTemplateRequest,
     SourceInfo,
 )
@@ -122,6 +127,24 @@ class ConsentGuardBackendTestCase(unittest.TestCase):
         revoke_res = asyncio.run(generate_revoke_template(revoke_req))
         self.assertEqual(revoke_res.status, "SUCCESS")
         self.assertIn("제37조", revoke_res.subject)
+
+    def test_preprocess_ocr_endpoint_parses_mobile_capture(self):
+        ocr_text = """
+        약관 전체 동의
+        (필수) 배달 위치기반 서비스 이용 동의
+        ☑ (선택) 제3자 보험/제휴 금융사 마케팅 제공 동의
+        (선택) 야간 할인 쿠폰 SMS 수신 동의
+        """
+        ocr_req = PreprocessOcrRequest(
+            service_name="배달의상상",
+            platform="IOS_APP",
+            ocr_raw_text=ocr_text,
+        )
+        ocr_res = asyncio.run(preprocess_ocr_clauses(ocr_req))
+        self.assertEqual(ocr_res.status, "SUCCESS")
+        self.assertEqual(len(ocr_res.parsed_items), 3)
+        self.assertEqual(ocr_res.analysis.overall_summary.risk_level, "RED")
+        self.assertEqual(ocr_res.analysis.overall_summary.recommended_unchecks_count, 2)
 
 
 if __name__ == "__main__":

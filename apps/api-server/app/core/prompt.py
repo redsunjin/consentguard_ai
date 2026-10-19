@@ -22,6 +22,7 @@ DarkPatternCategory = Literal[
     "PRE_SELECTED",
     "CANCELLATION_BARRIER",
 ]
+ClientPlatform = Literal["CHROME_EXT", "IOS_SAFARI", "IOS_APP", "ANDROID_APP"]
 
 SYSTEM_INSTRUCTION = """당신은 대한민국 개인정보보호법, 전자상거래법, 약관규제법 및 공정거래위원회 다크패턴 가이드라인에 특화된 '개인 동의서 리스크 분석 AI 엔진'입니다.
 
@@ -105,6 +106,18 @@ class AnalyzeClausesResponseData(BaseModel):
 class AnalyzeClausesResponse(BaseModel):
     status: Literal["SUCCESS", "ERROR"] = "SUCCESS"
     data: AnalyzeClausesResponseData
+
+
+class PreprocessOcrRequest(BaseModel):
+    service_name: Optional[str] = "모바일 앱"
+    platform: Optional[ClientPlatform] = "IOS_APP"
+    ocr_raw_text: str
+
+
+class PreprocessOcrResponse(BaseModel):
+    status: Literal["SUCCESS"] = "SUCCESS"
+    parsed_items: List[ClauseInputItem]
+    analysis: AnalyzeClausesResponseData
 
 
 class RevokeTemplateRequest(BaseModel):

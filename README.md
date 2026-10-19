@@ -102,10 +102,12 @@ cd apps/api-server
 pytest
 ```
 
-### 3.4 프론트엔드 / 크롬 익스텐션 워크스페이스 설치
+### 3.4 프론트엔드 / 크롬 익스텐션 워크스페이스 설치 및 빌드
 ```bash
 npm install
 npm run typecheck
+npm run build
+# 빌드 산출물: apps/chrome-extension/dist (chrome://extensions '압축해제된 확장 프로그램 로드' 지원)
 ```
 
 ---
@@ -114,11 +116,12 @@ npm run typecheck
 
 | 메서드 | 엔드포인트 | 설명 |
 | :--- | :--- | :--- |
-| `GET` | `/health` | 서버 상태 및 엔진 버전 확인 |
+| `GET` | `/health` | 서버 상태, Zero-Retention 여부 및 캐시 Hit/Miss 메트릭 확인 |
 | `POST` | `/v1/clauses/analyze` | 약관 항목 리스트 또는 원문 텍스트 리스크 종합 분석 |
+| `POST` | `/v1/clauses/preprocess-ocr` | 모바일 앱 스크린샷 OCR 텍스트 정제·파싱 및 리스크 분석 |
 | `POST` | `/v1/clauses/revoke-template` | 개인정보보호법 제37조 기반 동의 철회 및 파기 요청서 생성 |
 
-상세 요청/응답 JSON 페이로드 및 시스템 프롬프트 설계는 [`consentguard_ai.md`](./consentguard_ai.md)에서 확인할 수 있습니다.
+상세 요청/응답 JSON 페이로드 및 시스템 프롬프트 설계는 [`consentguard_ai.md`](./consentguard_ai.md) 및 [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)에서 확인할 수 있습니다.
 
 ---
 
@@ -135,8 +138,8 @@ npm run typecheck
 
 ## 🗺️ 6. 단계별 로드맵
 
-- [x] 마스터 기획서(`consentguard_ai.md`) 및 인터랙티브 데모(`consentguard_ai.html`) 작성
-- [x] 모노레포 프로젝트 하네스(`packages/shared-schema`, `apps/api-server`, `apps/chrome-extension`) 구성
-- [ ] **Phase 1 (MVP)**: Chrome Extension (MV3) Shadow DOM 플로팅 UI 패키징 및 스토어 배포 준비
-- [ ] **Phase 2**: FastAPI + Redis + Gemini 3 Flash 프로덕션 파이프라인 고도화
-- [ ] **Phase 3**: iOS/Android 모바일 Share Sheet + 온디바이스 OCR 확장
+- [x] **Phase 0**: 마스터 기획서(`consentguard_ai.md`), 상세 아키텍처 설계서(`docs/ARCHITECTURE.md`), 인터랙티브 데모(`consentguard_ai.html`) 및 하네스 구축 (PR #1)
+- [x] **Phase 1 (MVP)**: Chrome Extension (MV3) Shadow DOM 플로팅 어시스턴트, IndexedDB Vault 팝업, SPA DOM 파서 및 빌드 파이프라인 완성 (PR #2)
+- [x] **Phase 2**: FastAPI 6대 리스크 카테고리 룰 엔진, 변호사법 제109조 방어 필터, SHA-256 해시 캐시 TTL/메트릭 및 Gemini 3 Flash 파이프라인 고도화 (PR #3)
+- [x] **Phase 3**: 모바일 캡처 OCR 전처리·분석 파이프라인(`POST /v1/clauses/preprocess-ocr`) 및 통합 검증 완료 (PR #4)
+

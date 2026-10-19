@@ -1,6 +1,6 @@
 /**
  * ConsentGuard AI - Shared Schema & TypeScript Interfaces
- * Single Source of Truth for Chrome Extension & FastAPI Backend
+ * Single Source of Truth for Chrome Extension, Mobile OCR & FastAPI Backend
  */
 
 export type RiskLevel = 'GREEN' | 'YELLOW' | 'RED';
@@ -90,6 +90,18 @@ export interface AnalyzeClausesResponseData {
 export interface AnalyzeClausesResponse {
   status: 'SUCCESS' | 'ERROR';
   data: AnalyzeClausesResponseData;
+}
+
+export interface PreprocessOcrRequest {
+  service_name?: string;
+  platform?: ClientPlatform;
+  ocr_raw_text: string;
+}
+
+export interface PreprocessOcrResponse {
+  status: 'SUCCESS';
+  parsed_items: ClauseInputItem[];
+  analysis: AnalyzeClausesResponseData;
 }
 
 export interface RevokeTemplateRequest {

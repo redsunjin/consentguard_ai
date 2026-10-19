@@ -244,8 +244,8 @@ consent-guard-ai/
 
 안티그래비티 에이전트에게 아래 순서로 구현을 지시하십시오:
 
-- [ ] **Step 1**: `packages/shared-schema`에 요청/응답 TypeScript 인터페이스 및 Pydantic 모델 생성
-- [ ] **Step 2**: `apps/api-server`에 FastAPI 보일러플레이트 및 Gemini 3 Flash 연동 엔드포인트(`POST /v1/clauses/analyze`) 구현
-- [ ] **Step 3**: `apps/chrome-extension`에 Manifest V3 설정 및 페이지 내 체크박스 그룹을 탐지하는 Content Script 구현
-- [ ] **Step 4**: Content Script에서 Shadow DOM 기반 플로팅 배지 및 `[필수만 안전 동의]` 원클릭 제어 함수 연결
-- [ ] **Step 5**: IndexedDB 기반 Consent Vault(보관함) 및 동의 철회 이메일 클립보드 복사 UI 연결
+- [x] **Step 1**: `packages/shared-schema`에 요청/응답 TypeScript 인터페이스 및 Pydantic 모델 생성
+- [x] **Step 2**: `apps/api-server`에 FastAPI 보일러플레이트 및 Gemini 3 Flash 연동 엔드포인트(`POST /v1/clauses/analyze`) 구현
+- [x] **Step 3**: `apps/chrome-extension`에 Manifest V3 설정 및 페이지 내 체크박스 그룹을 탐지하는 Content Script 구현
+- [x] **Step 4**: Content Script에서 Shadow DOM 기반 플로팅 배지 및 `[필수만 안전 동의]` 원클릭 제어 함수 연결
+- [x] **Step 5**: IndexedDB 기반 Consent Vault(보관함) 및 동의 철회 이메일 클립보드 복사 UI 연결
