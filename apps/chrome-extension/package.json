@@ -4,7 +4,8 @@
   "private": true,
   "description": "ConsentGuard AI Chrome Extension (Manifest V3)",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/build.mjs"
   },
   "dependencies": {
     "@consent-guard/shared-schema": "*"
