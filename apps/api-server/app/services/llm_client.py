@@ -1,5 +1,5 @@
 """
-Gemini 3 Flash LLM Client with Rule-Engine Fallback
+Gemini 3 Flash LLM Client with Rule-Engine Fallback & Legal Expression Sanitization
 """
 
 import json
@@ -11,8 +11,23 @@ from app.core.prompt import (
     ClauseInputItem,
     SYSTEM_INSTRUCTION,
 )
-from app.core.security import sanitize_pii
+from app.core.security import sanitize_legal_expressions, sanitize_pii
 from app.services.rule_engine import analyze_items_with_rules
+
+
+def _enforce_legal_compliance_on_response(
+    data: AnalyzeClausesResponseData,
+) -> AnalyzeClausesResponseData:
+    data.overall_summary.one_line_summary = sanitize_legal_expressions(
+        data.overall_summary.one_line_summary
+    )
+    for item in data.analyzed_items:
+        item.plain_korean_summary = sanitize_legal_expressions(item.plain_korean_summary)
+        for issue in item.issues:
+            issue.description = sanitize_legal_expressions(issue.description)
+    for dp in data.dark_patterns:
+        dp.description = sanitize_legal_expressions(dp.description)
+    return data
 
 
 async def analyze_clauses_hybrid(items: List[ClauseInputItem]) -> AnalyzeClausesResponseData:
@@ -23,7 +38,7 @@ async def analyze_clauses_hybrid(items: List[ClauseInputItem]) -> AnalyzeClauses
     baseline = analyze_items_with_rules(items)
 
     if not settings.GEMINI_API_KEY:
-        return baseline
+        return _enforce_legal_compliance_on_response(baseline)
 
     sanitized_items = [
         {
@@ -66,8 +81,9 @@ async def analyze_clauses_hybrid(items: List[ClauseInputItem]) -> AnalyzeClauses
                 .get("text")
             )
             if not candidate_text:
-                return baseline
+                return _enforce_legal_compliance_on_response(baseline)
             parsed_json = json.loads(candidate_text)
-            return AnalyzeClausesResponseData.model_validate(parsed_json)
+            validated = AnalyzeClausesResponseData.model_validate(parsed_json)
+            return _enforce_legal_compliance_on_response(validated)
     except Exception:
-        return baseline
+        return _enforce_legal_compliance_on_response(baseline)
