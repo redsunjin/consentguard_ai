@@ -6,7 +6,7 @@
   <title>ConsentGuard AI Vault</title>
   <style>
     body {
-      width: 340px;
+      width: 360px;
       margin: 0;
       padding: 16px;
       font-family: -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif;
@@ -32,8 +32,59 @@
       background: rgba(16, 185, 129, 0.15);
       color: #34d399;
     }
+    .record-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .record-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .btn-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-revoke {
+      background: #4f46e5;
+      color: #ffffff;
+    }
+    .btn-delete {
+      background: #334155;
+      color: #cbd5e1;
+    }
+    .revoke-box {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #020617;
+      border: 1px solid #334155;
+      font-family: monospace;
+      font-size: 11px;
+      white-space: pre-wrap;
+      color: #cbd5e1;
+      max-height: 150px;
+      overflow-y: auto;
+    }
     .disclaimer {
       margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid #1e293b;
       font-size: 10px;
       color: #94a3b8;
       line-height: 1.4;
@@ -46,10 +97,12 @@
     <span class="badge">Zero-Retention</span>
   </div>
   <div id="vault-root" style="font-size: 12px; color: #cbd5e1;">
-    온디바이스 동의 이력 보관함 (IndexedDB 연동)
+    보관된 동의 이력을 불러오는 중...
   </div>
+  <div id="revoke-output" class="revoke-box"></div>
   <div class="disclaimer">
     본 서비스는 공정거래위원회 표준약관 기준에 따른 텍스트 요약 도구이며, 법률 자문을 대신하지 않습니다.
   </div>
+  <script type="module" src="./index.js"></script>
 </body>
 </html>

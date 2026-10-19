@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
     "test:api": "pytest apps/api-server/tests",
     "dev:api": "uvicorn app.main:app --app-dir apps/api-server --reload --port 8000"
   },
