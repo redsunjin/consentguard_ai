@@ -1,13 +1,18 @@
 """
 REST API Endpoints for ConsentGuard AI (/v1/clauses)
+Includes /analyze, /preprocess-ocr (Phase 3 Mobile OCR), and /revoke-template
 """
 
+import re
 from datetime import date
+from typing import List
 from fastapi import APIRouter, HTTPException
 from app.core.prompt import (
     AnalyzeClausesRequest,
     AnalyzeClausesResponse,
     ClauseInputItem,
+    PreprocessOcrRequest,
+    PreprocessOcrResponse,
     RevokeTemplateRequest,
     RevokeTemplateResponse,
 )
@@ -33,10 +38,15 @@ async def analyze_clauses(payload: AnalyzeClausesRequest) -> AnalyzeClausesRespo
         ]
 
     if not items:
-        raise HTTPException(status_code=400, detail="분석할 약관 항목(items 또는 raw_content)이 비어 있습니다.")
+        raise HTTPException(
+            status_code=400,
+            detail="분석할 약관 항목(items 또는 raw_content)이 비어 있습니다.",
+        )
 
     # Compute Zero-Retention SHA-256 cache key
-    combined_for_hash = "|".join(f"{i.client_item_id}:{i.raw_title}:{i.raw_text}" for i in items)
+    combined_for_hash = "|".join(
+        f"{i.client_item_id}:{i.raw_title}:{i.raw_text}" for i in items
+    )
     cache_key = compute_normalized_sha256(combined_for_hash)
 
     cached = get_cached_analysis(cache_key)
@@ -49,14 +59,70 @@ async def analyze_clauses(payload: AnalyzeClausesRequest) -> AnalyzeClausesRespo
     return AnalyzeClausesResponse(status="SUCCESS", data=analyzed_data)
 
 
+@router.post("/preprocess-ocr", response_model=PreprocessOcrResponse)
+async def preprocess_ocr_clauses(payload: PreprocessOcrRequest) -> PreprocessOcrResponse:
+    raw_ocr = sanitize_pii((payload.ocr_raw_text or "").strip())
+    if not raw_ocr:
+        raise HTTPException(status_code=400, detail="OCR 텍스트가 비어 있습니다.")
+
+    parsed_items = _parse_ocr_lines_to_items(raw_ocr)
+    analyzed_data = await analyze_clauses_hybrid(parsed_items)
+
+    return PreprocessOcrResponse(
+        status="SUCCESS",
+        parsed_items=parsed_items,
+        analysis=analyzed_data,
+    )
+
+
+def _parse_ocr_lines_to_items(raw_ocr: str) -> List[ClauseInputItem]:
+    lines = [line.strip() for line in raw_ocr.splitlines() if line.strip()]
+    items: List[ClauseInputItem] = []
+
+    master_keywords = ("전체 동의", "모두 동의", "전체동의", "약관 전체")
+    clause_pattern = re.compile(r"(\[필수\]|\(필수\)|필수|\[선택\]|\(선택\)|선택)")
+
+    for line in lines:
+        if any(mk in line for mk in master_keywords):
+            continue
+        if clause_pattern.search(line) or "동의" in line:
+            idx = len(items) + 1
+            normalized_title = (
+                line.replace("(필수)", "[필수]").replace("(선택)", "[선택]").strip()
+            )
+            items.append(
+                ClauseInputItem(
+                    client_item_id=f"ocr_chk_{idx}",
+                    raw_title=normalized_title[:80],
+                    raw_text=normalized_title,
+                    is_pre_checked="☑" in line or "[v]" in line.lower(),
+                )
+            )
+
+    if not items:
+        items.append(
+            ClauseInputItem(
+                client_item_id="ocr_chk_1",
+                raw_title="모바일 캡처 약관",
+                raw_text=raw_ocr,
+            )
+        )
+
+    return items
+
+
 @router.post("/revoke-template", response_model=RevokeTemplateResponse)
-async def generate_revoke_template(payload: RevokeTemplateRequest) -> RevokeTemplateResponse:
+async def generate_revoke_template(
+    payload: RevokeTemplateRequest,
+) -> RevokeTemplateResponse:
     service_name = sanitize_pii(payload.service_name.strip()) or "대상 서비스"
     user_account = payload.user_account.strip() or "이용자 계정"
     targets_bullet = "\n".join(f"   - {t}" for t in payload.revoke_targets)
     today_str = date.today().isoformat()
 
-    subject = f"[개인정보보호법 제37조] {service_name} 개인정보 제3자 제공 및 마케팅 동의 철회 요청"
+    subject = (
+        f"[개인정보보호법 제37조] {service_name} 개인정보 제3자 제공 및 마케팅 동의 철회 요청"
+    )
     body = (
         f"수신: {service_name} 개인정보보호책임자\n"
         f"참조: 고객지원센터\n\n"
