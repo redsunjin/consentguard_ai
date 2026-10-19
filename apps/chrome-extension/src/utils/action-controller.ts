@@ -11,6 +11,7 @@ function setCheckboxState(checkbox: HTMLInputElement, shouldBeChecked: boolean):
   checkbox.checked = shouldBeChecked;
   checkbox.dispatchEvent(new Event('input', { bubbles: true }));
   checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+  checkbox.dispatchEvent(new Event('click', { bubbles: true }));
 }
 
 export function applyRecommendedActions(
